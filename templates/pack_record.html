@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แพ็คและบันทึกวิดีโอ - BarVid Pro</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; max-width: 1400px; width: 100%; }
+        .main-panel, .side-panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 15px; margin-bottom: 20px; grid-column: 1 / -1; }
+        .header h1 { color: #1c1e21; margin: 0; }
+        nav { display: flex; justify-content: center; gap: 15px; margin-top: 10px; }
+        nav a { text-decoration: none; color: #007bff; font-weight: 600; padding: 8px 12px; border-radius: 6px; transition: background-color 0.2s; }
+        nav a:hover, nav a.active { background-color: #e7f3ff; }
+        video { width: 100%; height: auto; background-color: #000; border-radius: 4px; }
+        .controls { display: flex; gap: 10px; margin-top: 10px; }
+        .scan-input { flex-grow: 1; padding: 12px; font-size: 1.5em; text-align: center; border: 2px solid #007bff; border-radius: 6px; box-sizing: border-box; }
+        #stop-btn { font-size: 1.5em; padding: 12px 20px; cursor: pointer; border: none; border-radius: 6px; color: white; background-color: #dc3545; display: none; }
+        .status-bar { margin-top: 15px; padding: 15px; font-size: 1.2em; font-weight: bold; border-radius: 6px; text-align: center; }
+        .status-ready { background-color: #e7f3ff; color: #007bff; }
+        .status-recording { background-color: #f8d7da; color: #721c24; animation: blink 1.5s linear infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+        .item-list-container h2 { margin-top: 0; }
+        .item-list { list-style-type: none; padding: 0; margin: 0; max-height: 500px; overflow-y: auto; }
+        .item-list li { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .item-list li:last-child { border-bottom: none; }
+        .item-count { font-weight: bold; background-color: #007bff; color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.9em;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BarVid Pro: Warehouse Edition</h1>
+            <nav>
+                <a href="/manage">จัดการข้อมูลสินค้า</a>
+                <a href="/stock_in">รับสินค้าเข้าสต็อก</a>
+                <a href="/" class="active">แพ็คและบันทึกวิดีโอ</a>
+                <a href="/search">ค้นหาวิดีโอ</a>
+                <a href="/reports">ตรวจสอบและรายงาน</a>
+            </nav>
+        </div>
+
+        <div class="main-panel">
+            <video id="video-preview" autoplay muted playsinline></video>
+            <div class="controls">
+                <input type="text" id="scan-input" class="scan-input" placeholder="ยิงบาร์โค้ดที่นี่...">
+                <button id="stop-btn">หยุดบันทึก</button>
+            </div>
+            <div id="status-bar" class="status-bar status-ready">สถานะ: รอสแกนบาร์โค้ดขนส่งเพื่อเริ่ม</div>
+        </div>
+
+        <div class="side-panel">
+            <h2>รายการสินค้าในพัสดุนี้</h2>
+            <ul id="item-list" class="item-list">
+                <li style="justify-content: center; color: #888;">ยังไม่มีการสแกนสินค้า</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const videoPreview = document.getElementById('video-preview');
+        const scanInput = document.getElementById('scan-input');
+        const statusBar = document.getElementById('status-bar');
+        const itemList = document.getElementById('item-list');
+        const stopBtn = document.getElementById('stop-btn');
+        
+        let state = 'WAITING_TRANSPORT';
+        let mediaRecorder;
+        let recordedChunks = [];
+        let transportBarcode = null;
+        let scannedItems = []; // Will store full product objects {barcode, name}
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+            .then(stream => {
+                videoPreview.srcObject = stream;
+                setupMediaRecorder(stream);
+            })
+            .catch(err => updateStatus(`ไม่สามารถเข้าถึงกล้อง: ${err.message}`, 'error'));
+        
+        function setupMediaRecorder(stream) {
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = event => recordedChunks.push(event.data);
+            mediaRecorder.onstop = uploadVideo;
+        }
+
+        function updateStatus(message, statusClass) {
+            statusBar.textContent = message;
+            statusBar.className = `status-bar status-${statusClass}`;
+        }
+
+        // ### FIXED ### This function now correctly groups and counts items ###
+        function updateItemList() {
+            if (scannedItems.length === 0) {
+                itemList.innerHTML = '<li style="justify-content: center; color: #888;">ยังไม่มีการสแกนสินค้า</li>';
+                return;
+            }
+            
+            // Group items by barcode to show count
+            const itemCounts = scannedItems.reduce((acc, item) => {
+                if (!acc[item.barcode]) {
+                    acc[item.barcode] = { name: item.name, count: 0 };
+                }
+                acc[item.barcode].count++;
+                return acc;
+            }, {});
+
+            itemList.innerHTML = '';
+            for (const barcode in itemCounts) {
+                const item = itemCounts[barcode];
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${item.name}</span><span class="item-count">${item.count}</span>`;
+                itemList.appendChild(li);
+            }
+        }
+
+        async function handleScan() {
+            const barcode = scanInput.value.trim();
+            if (!barcode) return;
+            scanInput.value = '';
+            scanInput.focus();
+
+            if (state === 'WAITING_TRANSPORT') {
+                transportBarcode = barcode;
+                state = 'RECORDING';
+                mediaRecorder.start();
+                scannedItems = [];
+                updateItemList();
+                updateStatus(`กำลังบันทึกพัสดุ #${transportBarcode}...`, 'recording');
+                scanInput.placeholder = 'สแกนบาร์โค้ดสินค้า...';
+                stopBtn.style.display = 'block';
+            
+            } else if (state === 'RECORDING') {
+                if (barcode === transportBarcode) {
+                    stopRecordingProcess();
+                } else {
+                    try {
+                        const response = await fetch(`/api/check_item/${barcode}`);
+                        const product = await response.json();
+                        if (response.ok) {
+                            // Check if enough stock is available based on what's already scanned
+                            const alreadyScannedCount = scannedItems.filter(item => item.barcode === barcode).length;
+                            if (product.quantity > alreadyScannedCount) {
+                                scannedItems.push({barcode: barcode, name: product.name});
+                                updateItemList();
+                            } else {
+                                alert(`คำเตือน: สินค้า '${product.name}' (${barcode}) ในสต็อกไม่เพียงพอ! (มีในสต็อก: ${product.quantity}, สแกนแล้ว: ${alreadyScannedCount})`);
+                            }
+                        } else {
+                            alert(`ผิดพลาด: ไม่พบสินค้าบาร์โค้ด '${barcode}' ในระบบ`);
+                        }
+                    } catch (error) {
+                        alert('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
+                    }
+                }
+            }
+        }
+        
+        function stopRecordingProcess() {
+             if (mediaRecorder.state !== 'recording') return;
+             if (scannedItems.length === 0 && !confirm('พัสดุนี้ยังไม่มีสินค้า คุณต้องการหยุดบันทึกหรือไม่?')) {
+                return;
+            }
+            mediaRecorder.stop();
+            scanInput.disabled = true;
+            stopBtn.disabled = true;
+            updateStatus(`กำลังหยุดและบันทึกพัสดุ #${transportBarcode}...`, 'ready');
+        }
+
+        async function uploadVideo() {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const formData = new FormData();
+            
+            // ### FIXED ### Send the full list of objects for detailed logging
+            formData.append('video', blob, 'video.mp4');
+            formData.append('transport_barcode', transportBarcode);
+            formData.append('scanned_items', JSON.stringify(scannedItems));
+
+            try {
+                const response = await fetch('/upload_pack_video', { method: 'POST', body: formData });
+                const data = await response.json();
+                if (response.ok) {
+                    updateStatus(`บันทึกพัสดุ #${transportBarcode} สำเร็จ!`, 'ready');
+                } else {
+                    throw new Error(data.message || 'Unknown server error');
+                }
+            } catch (error) {
+                updateStatus(`อัปโหลดล้มเหลว: ${error.message}`, 'error');
+            } finally {
+                recordedChunks = [];
+                state = 'WAITING_TRANSPORT';
+                transportBarcode = null;
+                scannedItems = [];
+                updateItemList();
+                scanInput.disabled = false;
+                scanInput.placeholder = 'ยิงบาร์โค้ดขนส่งเพื่อเริ่ม...';
+                stopBtn.style.display = 'none';
+                stopBtn.disabled = false;
+                scanInput.focus();
+            }
+        }
+
+        scanInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') handleScan();
+        });
+
+        stopBtn.addEventListener('click', stopRecordingProcess);
+
+        scanInput.focus();
+        document.body.addEventListener('click', () => scanInput.focus());
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ค้นหาวิดีโอ - BarVid Pro</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 1200px; width: 100%; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 15px; margin-bottom: 20px;}
+        .header h1 { color: #1c1e21; margin: 0; }
+        nav { display: flex; justify-content: center; gap: 15px; margin-top: 10px; }
+        nav a { text-decoration: none; color: #007bff; font-weight: 600; padding: 8px 12px; border-radius: 6px; transition: background-color 0.2s; }
+        nav a:hover, nav a.active { background-color: #e7f3ff; }
+        .search-controls { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-controls input { flex-grow: 1; padding: 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 6px; }
+        .search-controls button { font-size: 1em; padding: 10px 20px; cursor: pointer; border: none; border-radius: 6px; color: white; font-weight: 600; background-color: #1877f2; }
+        .table-wrapper { max-height: 600px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid #ddd; padding: 12px 15px; text-align: left; }
+        th { background-color: #f8f9fa; position: sticky; top: 0; }
+        tbody tr:hover { background-color: #f1f1f1; }
+        .action-buttons a, .action-buttons button { text-decoration: none; color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.9em; margin-right: 5px; cursor: pointer; border: none; display: inline-block; }
+        .btn-play { background-color: #28a745; }
+        .btn-download { background-color: #17a2b8; }
+        .btn-delete { background-color: #fa383e; }
+        .scanned-item-list { list-style-type: none; margin: 0; padding: 0; font-size: 0.9em; }
+        .scanned-item-list li { padding: 2px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BarVid Pro: Warehouse Edition</h1>
+            <nav>
+                <a href="/manage">จัดการข้อมูลสินค้า</a>
+                <a href="/stock_in">รับสินค้าเข้าสต็อก</a>
+                <a href="/">แพ็คและบันทึกวิดีโอ</a>
+                <a href="/search" class="active">ค้นหาวิดีโอ</a>
+                <a href="/reports">ตรวจสอบและรายงาน</a>
+            </nav>
+        </div>
+
+        <h2>ค้นหาพัสดุและวิดีโอ</h2>
+        <div class="search-controls">
+            <input type="text" id="search-input" placeholder="ค้นหาด้วยบาร์โค้ดขนส่ง...">
+            <button id="search-btn">ค้นหา</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="parcel-table">
+                <thead>
+                    <tr>
+                        <th>บาร์โค้ดขนส่ง</th>
+                        <th>วันที่/เวลา</th>
+                        <th>รายการสินค้าที่สแกน</th>
+                        <th>วิดีโอ</th>
+                        <th>การกระทำ</th>
+                    </tr>
+                </thead>
+                <tbody id="parcel-list">
+                    <!-- Parcel rows will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const parcelListBody = document.getElementById('parcel-list');
+        let allParcels = [];
+
+        async function fetchParcels() {
+            try {
+                const response = await fetch('/api/parcels');
+                allParcels = await response.json();
+                displayParcels(allParcels);
+            } catch (error) {
+                console.error('Failed to fetch parcels:', error);
+                parcelListBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">ไม่สามารถโหลดข้อมูลได้</td></tr>`;
+            }
+        }
+
+        function displayParcels(parcels) {
+            parcelListBody.innerHTML = '';
+            if (parcels.length === 0) {
+                parcelListBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">ไม่พบข้อมูลพัสดุ</td></tr>`;
+                return;
+            }
+            parcels.forEach(parcel => {
+                const row = document.createElement('tr');
+
+                let itemsHtml = '<ul class="scanned-item-list">';
+                if (parcel.scanned_products && parcel.scanned_products.length > 0) {
+                    const itemCounts = parcel.scanned_products.reduce((acc, item) => {
+                        acc[item.name] = (acc[item.name] || 0) + 1;
+                        return acc;
+                    }, {});
+                    for (const [name, count] of Object.entries(itemCounts)) {
+                        itemsHtml += `<li>${name} (x${count})</li>`;
+                    }
+                } else {
+                    itemsHtml += '<li>ไม่มีสินค้า</li>';
+                }
+                itemsHtml += '</ul>';
+
+                row.innerHTML = `
+                    <td>${parcel.transport_barcode}</td>
+                    <td>${new Date(parcel.timestamp).toLocaleString('th-TH')}</td>
+                    <td>${itemsHtml}</td>
+                    <td>${parcel.video_filename}</td>
+                    <td class="action-buttons">
+                        <a href="/uploads/${parcel.video_filename}" target="_blank" class="btn-play">เล่น</a>
+                        <a href="/uploads/${parcel.video_filename}" download class="btn-download">ดาวน์โหลด</a>
+                        <button class="btn-delete" data-barcode="${parcel.transport_barcode}">ลบ</button>
+                    </td>
+                `;
+                parcelListBody.appendChild(row);
+            });
+        }
+
+        function filterParcels() {
+            const searchTerm = searchInput.value.toLowerCase();
+            if (!searchTerm) {
+                displayParcels(allParcels);
+                return;
+            }
+            const filteredParcels = allParcels.filter(p => p.transport_barcode.toLowerCase().includes(searchTerm));
+            displayParcels(filteredParcels);
+        }
+
+        async function deleteParcel(transportBarcode) {
+            if (confirm(`คุณต้องการลบข้อมูลพัสดุและวิดีโอของ "${transportBarcode}" ใช่หรือไม่?`)) {
+                try {
+                    const response = await fetch(`/api/parcels/${transportBarcode}`, { method: 'DELETE' });
+                    const data = await response.json();
+                    if (response.ok) {
+                        alert(data.message);
+                        fetchParcels();
+                    } else { throw new Error(data.message); }
+                } catch (error) { alert(`เกิดข้อผิดพลาด: ${error.message}`); }
+            }
+        }
+
+        searchBtn.addEventListener('click', filterParcels);
+        searchInput.addEventListener('keyup', (event) => { if (event.key === 'Enter') filterParcels(); });
+
+        parcelListBody.addEventListener('click', (event) => {
+            if (event.target.classList.contains('btn-delete')) {
+                deleteParcel(event.target.dataset.barcode);
+            }
+        });
+
+        fetchParcels();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตรวจสอบและรายงาน - BarVid Pro</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 1200px; width: 100%; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { color: #1c1e21; margin: 0; }
+        nav { display: flex; justify-content: center; gap: 15px; margin-top: 10px; }
+        nav a { text-decoration: none; color: #007bff; font-weight: 600; padding: 8px 12px; border-radius: 6px; }
+        nav a.active { background-color: #e7f3ff; }
+        .dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .card { background-color: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; text-align: center; }
+        .card h3 { margin-top: 0; color: #6c757d; font-size: 1em; }
+        .card .value { font-size: 2.5em; font-weight: bold; color: #007bff; }
+        .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .report-section { margin-bottom: 30px; }
+        h2 { border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .controls { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .controls label { font-weight: 600; }
+        .controls input[type="date"] { padding: 8px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; }
+        button { font-size: 1em; padding: 10px 15px; cursor: pointer; border: none; border-radius: 6px; color: white; font-weight: 600; }
+        .btn-action { background-color: #17a2b8; }
+        .table-wrapper { max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; white-space: nowrap; }
+        th { background-color: #f8f9fa; position: sticky; top: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BarVid Pro: Warehouse Edition</h1>
+            <nav>
+                <a href="/manage">จัดการข้อมูลสินค้า</a>
+                <a href="/stock_in">รับสินค้าเข้าสต็อก</a>
+                <a href="/">แพ็คและบันทึกวิดีโอ</a>
+                <a href="/search">ค้นหาวิดีโอ</a>
+                <a href="/reports" class="active">ตรวจสอบและรายงาน</a>
+            </nav>
+        </div>
+
+        <div class="dashboard">
+            <div class="card"><h3>ยอดรวมสินค้าคงคลัง</h3><div id="total-stock" class="value">0</div></div>
+            <div class="card"><h3>ยอดรับเข้าวันนี้</h3><div id="today-stock-in" class="value">0</div></div>
+            <div class="card"><h3>ยอดตัดออกวันนี้</h3><div id="today-stock-out" class="value">0</div></div>
+        </div>
+
+        <div id="print-area">
+             <div class="report-grid">
+                <div class="report-section">
+                    <h2>รายงานการรับสินค้ารายวัน</h2>
+                    <div class="controls">
+                        <label for="stock-in-date">เลือกวันที่:</label>
+                        <input type="date" id="stock-in-date">
+                        <button id="view-stock-in-btn" class="btn-action">ดู</button>
+                    </div>
+                    <div class="table-wrapper"><table id="daily-stock-in-table"><thead><tr><th>เวลา</th><th>ประเภท</th><th>บาร์โค้ด</th><th>ชื่อสินค้า</th><th>จำนวน</th></tr></thead><tbody></tbody></table></div>
+                </div>
+                <div class="report-section">
+                    <h2>รายงานการตัดสต็อกรายวัน</h2>
+                    <div class="controls">
+                        <label for="stock-out-date">เลือกวันที่:</label>
+                        <input type="date" id="stock-out-date">
+                        <button id="view-stock-out-btn" class="btn-action">ดู</button>
+                    </div>
+                     <div class="table-wrapper"><table id="daily-stock-out-table"><thead><tr><th>เวลา</th><th>บาร์โค้ด</th><th>ชื่อสินค้า</th><th>จำนวน</th></tr></thead><tbody></tbody></table></div>
+                </div>
+            </div>
+            <div class="report-section">
+                <h2>รายงานสินค้าคงเหลือทั้งหมด</h2>
+                 <div class="table-wrapper"><table id="inventory-table"><thead><tr><th>บาร์โค้ด</th><th>ชื่อสินค้า</th><th>จำนวนคงเหลือ</th></tr></thead><tbody id="inventory-list"></tbody></table></div>
+            </div>
+        </div>
+
+        <div class="controls" style="justify-content: center; margin-top: 20px;">
+            <button id="print-btn" class="btn-action">พิมพ์รายงานหน้านี้</button>
+        </div>
+    </div>
+    <script>
+        const stockInDateInput = document.getElementById('stock-in-date');
+        const viewStockInBtn = document.getElementById('view-stock-in-btn');
+        const stockInTableBody = document.getElementById('daily-stock-in-table').querySelector('tbody');
+        const stockOutDateInput = document.getElementById('stock-out-date');
+        const viewStockOutBtn = document.getElementById('view-stock-out-btn');
+        const stockOutTableBody = document.getElementById('daily-stock-out-table').querySelector('tbody');
+        const inventoryListBody = document.getElementById('inventory-list');
+
+        function getTodayDateString() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        async function fetchDashboardSummary() {
+            try {
+                const response = await fetch('/api/reports/dashboard_summary');
+                const data = await response.json();
+                document.getElementById('total-stock').textContent = data.total_stock;
+                document.getElementById('today-stock-in').textContent = data.today_stock_in;
+                document.getElementById('today-stock-out').textContent = data.today_stock_out;
+            } catch (error) { console.error('Failed to fetch dashboard summary:', error); }
+        }
+        
+        async function fetchDailyReport(dateStr, type, tableBody) {
+            try {
+                const response = await fetch(`/api/reports/daily_log?date=${dateStr}&type=${type}`);
+                const logs = await response.json();
+                tableBody.innerHTML = '';
+                if(logs.length === 0){
+                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">ไม่พบข้อมูล</td></tr>`;
+                    return;
+                }
+                logs.forEach(log => {
+                    const timestamp = new Date(log.timestamp).toLocaleTimeString('th-TH');
+                    let rowHtml = '';
+                    if (type === 'stock-in') {
+                        const typeText = log.type === 'stock-in' ? 'รับเข้า' : 'ปรับยอด';
+                        rowHtml = `<tr><td>${timestamp}</td><td>${typeText}</td><td>${log.barcode}</td><td>${log.product_name}</td><td style="text-align:center;">+${log.quantity_change}</td></tr>`;
+                    } else { // stock-out
+                         rowHtml = `<tr><td>${timestamp}</td><td>${log.barcode}</td><td>${log.product_name}</td><td style="text-align:center;">${log.quantity_change}</td></tr>`;
+                    }
+                    tableBody.innerHTML += rowHtml;
+                });
+            } catch (error) {
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">เกิดข้อผิดพลาด</td></tr>`;
+            }
+        }
+        
+        async function fetchInventory() {
+            try {
+                const response = await fetch('/api/inventory');
+                const products = await response.json();
+                inventoryListBody.innerHTML = '';
+                const sortedBarcodes = Object.keys(products).sort();
+                for (const barcode of sortedBarcodes) {
+                    const details = products[barcode];
+                    inventoryListBody.innerHTML += `<tr><td>${barcode}</td><td>${details.name}</td><td style="text-align:center;">${details.quantity}</td></tr>`;
+                }
+            } catch (error) { console.error('Failed to fetch inventory:', error); }
+        }
+
+        function printReport() {
+            const printContent = document.getElementById('print-area').innerHTML;
+            const printWindow = window.open('', 'PRINT', 'height=800,width=1000');
+            printWindow.document.write('<html><head><title>รายงาน</title>');
+            
+            // ### FIXED: ปรับขนาด Font และระยะห่างสำหรับการพิมพ์ ###
+            printWindow.document.write(`
+                <style> 
+                    body { font-family: "Sarabun", sans-serif; font-size: 10pt; } 
+                    table { width: 100%; border-collapse: collapse; font-size: 9pt; } 
+                    th, td { border: 1px solid #ccc; padding: 4px; text-align: left; } 
+                    th { background-color: #f2f2f2; } 
+                    h1, h2, h4 { text-align: center; margin: 10px 0; } 
+                    h1 { font-size: 16pt; }
+                    h2 { font-size: 12pt; }
+                    h4 { font-size: 10pt; font-weight: normal;}
+                    .controls { display: none; } 
+                </style>
+            `);
+            
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<h1>รายงาน BarVid Pro</h1><h4>วันที่พิมพ์: ' + new Date().toLocaleString('th-TH') + '</h4>');
+            printWindow.document.write(printContent);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }
+
+        viewStockInBtn.addEventListener('click', () => fetchDailyReport(stockInDateInput.value, 'stock-in', stockInTableBody));
+        viewStockOutBtn.addEventListener('click', () => fetchDailyReport(stockOutDateInput.value, 'stock-out', stockOutTableBody));
+        document.getElementById('print-btn').addEventListener('click', printReport);
+
+        const today = getTodayDateString();
+        stockInDateInput.value = today;
+        stockOutDateInput.value = today;
+        fetchDashboardSummary();
+        fetchDailyReport(today, 'stock-in', stockInTableBody);
+        fetchDailyReport(today, 'stock-out', stockOutTableBody);
+        fetchInventory();
+    </script>
+</body>
+</html>
+
+
+

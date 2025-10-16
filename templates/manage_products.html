@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการข้อมูล - BarVid Pro</title>
+     <style>
+        body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 900px; width: 100%; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 15px; margin-bottom: 20px; }
+        nav { display: flex; justify-content: center; gap: 15px; margin-top: 10px; }
+        nav a { text-decoration: none; color: #007bff; font-weight: 600; padding: 8px 12px; border-radius: 6px; }
+        nav a.active { background-color: #e7f3ff; }
+        .manager-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .form-container, .product-list-container, .user-management-container { padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        h2 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; }
+        input { width: 100%; padding: 8px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;}
+        button { font-size: 1em; padding: 10px; cursor: pointer; border: none; border-radius: 6px; color: white; }
+        .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        tbody tr { cursor: pointer; }
+        tbody tr:hover { background-color: #f1f1f1; }
+        nav .logout-link { color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BarVid Pro: Warehouse Edition</h1>
+            <nav>
+                <a href="/manage" class="active">จัดการข้อมูล</a>
+                <a href="/stock_in">รับสินค้าเข้าสต็อก</a>
+                <a href="/">แพ็คและบันทึกวิดีโอ</a>
+                <a href="/search">ค้นหาวิดีโอ</a>
+                <a href="/reports">ตรวจสอบและรายงาน</a>
+                <a href="/logout" class="logout-link">ออกจากระบบ</a>
+            </nav>
+        </div>
+
+        <div class="manager-grid">
+            <div>
+                <div class="form-container">
+                    <h2>ข้อมูลสินค้า</h2>
+                    <div class="form-group"> <label for="barcode">บาร์โค้ด:</label> <input type="text" id="barcode"> </div>
+                    <div class="form-group"> <label for="name">ชื่อสินค้า:</label> <input type="text" id="name"> </div>
+                    <div class="button-group">
+                        <button id="add-prod-btn" style="background-color: #42b72a;">เพิ่ม/อัปเดต</button>
+                        <button id="clear-prod-btn" style="background-color: #6c757d;">ล้างฟอร์ม</button>
+                    </div>
+                </div>
+                <div class="user-management-container" style="margin-top: 20px;">
+                    <h2>จัดการผู้ใช้</h2>
+                    <div class="form-group"> <label for="new-username">ชื่อผู้ใช้ใหม่:</label> <input type="text" id="new-username"> </div>
+                    <div class="form-group"> <label for="new-password">รหัสผ่านใหม่:</label> <input type="password" id="new-password"> </div>
+                    <button id="add-user-btn" style="background-color: #17a2b8; width: 100%; margin-bottom: 15px;">เพิ่มผู้ใช้ใหม่</button>
+                    <hr>
+                    <div class="form-group"> <label for="current-password">รหัสผ่านปัจจุบัน:</label> <input type="password" id="current-password"> </div>
+                    <div class="form-group"> <label for="change-password">รหัสผ่านใหม่ของคุณ:</label> <input type="password" id="change-password"> </div>
+                    <button id="change-pass-btn" style="background-color: #ffc107; color: black; width: 100%;">เปลี่ยนรหัสผ่าน</button>
+                </div>
+            </div>
+            <div class="product-list-container">
+                <h2>รายการสินค้าทั้งหมด</h2>
+                <div style="max-height: 500px; overflow-y: auto;">
+                    <table id="product-table">
+                        <thead><tr><th>บาร์โค้ด</th><th>ชื่อสินค้า</th><th>ลบ</th></tr></thead>
+                        <tbody id="product-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // User Management JavaScript
+        const newUsernameInput = document.getElementById('new-username');
+        const newPasswordInput = document.getElementById('new-password');
+        const addUserBtn = document.getElementById('add-user-btn');
+        const currentPasswordInput = document.getElementById('current-password');
+        const changePasswordInput = document.getElementById('change-password');
+        const changePassBtn = document.getElementById('change-pass-btn');
+        
+        async function addUser() {
+            const newUsername = newUsernameInput.value.trim();
+            const newPassword = newPasswordInput.value.trim();
+            if(!newUsername || !newPassword) {
+                alert('กรุณากรอกชื่อผู้ใช้และรหัสผ่านใหม่');
+                return;
+            }
+            try {
+                const response = await fetch('/api/users/add_user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ new_username: newUsername, new_password: newPassword })
+                });
+                const data = await response.json();
+                alert(data.message);
+                if (response.ok) {
+                    newUsernameInput.value = '';
+                    newPasswordInput.value = '';
+                }
+            } catch(e) { alert('เกิดข้อผิดพลาด: ' + e); }
+        }
+
+        async function changePassword() {
+            const currentPassword = currentPasswordInput.value;
+            const newPassword = changePasswordInput.value;
+             if(!currentPassword || !newPassword) {
+                alert('กรุณากรอกรหัสผ่านปัจจุบันและรหัสผ่านใหม่');
+                return;
+            }
+             try {
+                const response = await fetch('/api/users/change_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
+                });
+                const data = await response.json();
+                alert(data.message);
+                if (response.ok) {
+                    currentPasswordInput.value = '';
+                    changePasswordInput.value = '';
+                }
+            } catch(e) { alert('เกิดข้อผิดพลาด: ' + e); }
+        }
+
+        addUserBtn.addEventListener('click', addUser);
+        changePassBtn.addEventListener('click', changePassword);
+        
+        // Product Management code
+        const barcodeInput = document.getElementById('barcode');
+        const nameInput = document.getElementById('name');
+        const productListBody = document.getElementById('product-list');
+        let selectedBarcode = null;
+
+        async function fetchProducts() {
+            try {
+                const response = await fetch('/api/products');
+                const products = await response.json();
+                productListBody.innerHTML = '';
+                Object.keys(products).sort().forEach(barcode => {
+                    const details = products[barcode];
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td class="data">${barcode}</td><td class="data">${details.name}</td><td style="text-align:center;"><button style="background-color: #fa383e;" data-barcode="${barcode}">ลบ</button></td>`;
+                    row.querySelectorAll('.data').forEach(cell => cell.addEventListener('click', () => selectProduct(barcode, details.name, row)));
+                    productListBody.appendChild(row);
+                });
+            } catch (error) { console.error('Failed to fetch products:', error); }
+        }
+
+        function selectProduct(barcode, name, rowElement) {
+            document.querySelectorAll('#product-list tr').forEach(row => row.style.backgroundColor = '');
+            rowElement.style.backgroundColor = '#d4edff';
+            barcodeInput.value = barcode;
+            nameInput.value = name;
+            selectedBarcode = barcode;
+        }
+
+        function clearForm() {
+            barcodeInput.value = '';
+            nameInput.value = '';
+            selectedBarcode = null;
+            document.querySelectorAll('#product-list tr').forEach(row => row.style.backgroundColor = '');
+        }
+
+        async function addOrUpdateProduct() {
+            const barcode = barcodeInput.value.trim();
+            const name = nameInput.value.trim();
+            if (!barcode || !name) { alert('กรุณากรอกข้อมูลให้ครบ'); return; }
+            try {
+                const response = await fetch('/api/products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ barcode, name, original_barcode: selectedBarcode })
+                });
+                const data = await response.json();
+                alert(data.message);
+                if (response.ok) { clearForm(); fetchProducts(); }
+            } catch (error) { alert(`เกิดข้อผิดพลาด: ${error}`); }
+        }
+
+        async function deleteProduct(barcode) {
+            if (confirm(`คุณต้องการลบสินค้าบาร์โค้ด "${barcode}" ใช่หรือไม่?`)) {
+                try {
+                    const response = await fetch(`/api/products/${barcode}`, { method: 'DELETE' });
+                    const data = await response.json();
+                    alert(data.message);
+                    if (response.ok) { clearForm(); fetchProducts(); }
+                } catch (error) { alert(`เกิดข้อผิดพลาด: ${error}`); }
+            }
+        }
+        
+        document.getElementById('add-prod-btn').addEventListener('click', addOrUpdateProduct);
+        document.getElementById('clear-prod-btn').addEventListener('click', clearForm);
+        productListBody.addEventListener('click', e => {
+            if (e.target.tagName === 'BUTTON') deleteProduct(e.target.dataset.barcode);
+        });
+        fetchProducts();
+    </script>
+</body>
+</html>

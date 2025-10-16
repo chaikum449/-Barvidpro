@@ -1,0 +1,370 @@
+[
+    {
+        "timestamp": "2025-10-16T14:18:40.188535",
+        "type": "stock-out",
+        "barcode": "6666",
+        "product_name": "สิงห์ชิวการด",
+        "quantity_change": -1,
+        "new_quantity": 6
+    },
+    {
+        "timestamp": "2025-10-16T14:18:40.187538",
+        "type": "stock-out",
+        "barcode": "6666",
+        "product_name": "สิงห์ชิวการด",
+        "quantity_change": -1,
+        "new_quantity": 7
+    },
+    {
+        "timestamp": "2025-10-16T14:18:40.186511",
+        "type": "stock-out",
+        "barcode": "6666",
+        "product_name": "สิงห์ชิวการด",
+        "quantity_change": -1,
+        "new_quantity": 8
+    },
+    {
+        "timestamp": "2025-10-16T14:18:40.185492",
+        "type": "stock-out",
+        "barcode": "5555",
+        "product_name": "สิงโตไว",
+        "quantity_change": -1,
+        "new_quantity": 0
+    },
+    {
+        "timestamp": "2025-10-16T14:18:40.183909",
+        "type": "stock-out",
+        "barcode": "5555",
+        "product_name": "สิงโตไว",
+        "quantity_change": -1,
+        "new_quantity": 1
+    },
+    {
+        "timestamp": "2025-10-16T14:18:40.182899",
+        "type": "stock-out",
+        "barcode": "2222",
+        "product_name": "อะมิโนทางด่วน",
+        "quantity_change": -1,
+        "new_quantity": 7
+    },
+    {
+        "timestamp": "2025-10-16T14:18:40.181862",
+        "type": "stock-out",
+        "barcode": "1111",
+        "product_name": "แคลเซียมโบรอน",
+        "quantity_change": -1,
+        "new_quantity": 4
+    },
+    {
+        "timestamp": "2025-10-16T14:18:40.180333",
+        "type": "stock-out",
+        "barcode": "6666",
+        "product_name": "สิงห์ชิวการด",
+        "quantity_change": -1,
+        "new_quantity": 9
+    },
+    {
+        "timestamp": "2025-10-16T14:18:03.566136",
+        "type": "stock-in",
+        "barcode": "6666",
+        "product_name": "สิงห์ชิวการด",
+        "quantity_change": 10,
+        "new_quantity": 10
+    },
+    {
+        "timestamp": "2025-10-16T14:17:53.607804",
+        "type": "manual-adjust",
+        "barcode": "6666",
+        "product_name": "สิงห์ชิวการด",
+        "quantity_change": 0,
+        "new_quantity": 0
+    },
+    {
+        "timestamp": "2025-10-16T13:38:39.022220",
+        "type": "stock-out",
+        "barcode": "5555",
+        "product_name": "สิงโตไว",
+        "quantity_change": -1,
+        "new_quantity": 2
+    },
+    {
+        "timestamp": "2025-10-16T13:38:39.021154",
+        "type": "stock-out",
+        "barcode": "5555",
+        "product_name": "สิงโตไว",
+        "quantity_change": -1,
+        "new_quantity": 3
+    },
+    {
+        "timestamp": "2025-10-16T13:38:39.020053",
+        "type": "stock-out",
+        "barcode": "5555",
+        "product_name": "สิงโตไว",
+        "quantity_change": -1,
+        "new_quantity": 4
+    },
+    {
+        "timestamp": "2025-10-16T13:38:39.018942",
+        "type": "stock-out",
+        "barcode": "4444",
+        "product_name": "บิวเวอเรียน",
+        "quantity_change": -1,
+        "new_quantity": 0
+    },
+    {
+        "timestamp": "2025-10-16T13:38:39.018115",
+        "type": "stock-out",
+        "barcode": "4444",
+        "product_name": "บิวเวอเรียน",
+        "quantity_change": -1,
+        "new_quantity": 1
+    },
+    {
+        "timestamp": "2025-10-16T13:38:39.016857",
+        "type": "stock-out",
+        "barcode": "4444",
+        "product_name": "บิวเวอเรียน",
+        "quantity_change": -1,
+        "new_quantity": 2
+    },
+    {
+        "timestamp": "2025-10-16T13:38:39.016041",
+        "type": "stock-out",
+        "barcode": "2222",
+        "product_name": "อะมิโนทางด่วน",
+        "quantity_change": -1,
+        "new_quantity": 8
+    },
+    {
+        "timestamp": "2025-10-16T13:38:39.015197",
+        "type": "stock-out",
+        "barcode": "2222",
+        "product_name": "อะมิโนทางด่วน",
+        "quantity_change": -1,
+        "new_quantity": 9
+    },
+    {
+        "timestamp": "2025-10-16T13:38:39.013982",
+        "type": "stock-out",
+        "barcode": "1111",
+        "product_name": "แคลเซียมโบรอน",
+        "quantity_change": -1,
+        "new_quantity": 5
+    },
+    {
+        "timestamp": "2025-10-16T13:37:09.252102",
+        "type": "stock-in",
+        "barcode": "5555",
+        "product_name": "สิงโตไว",
+        "quantity_change": 5,
+        "new_quantity": 5
+    },
+    {
+        "timestamp": "2025-10-16T13:36:36.646942",
+        "type": "manual-adjust",
+        "barcode": "5555",
+        "product_name": "สิงโตไว",
+        "quantity_change": 0,
+        "new_quantity": 0
+    },
+    {
+        "timestamp": "2025-10-16T13:13:31.619146",
+        "type": "stock-in",
+        "barcode": "1111",
+        "product_name": "แคลเซียมโบรอน",
+        "quantity_change": 5,
+        "new_quantity": 6
+    },
+    {
+        "timestamp": "2025-10-16T13:08:10.052193",
+        "type": "stock-out",
+        "barcode": "1111",
+        "product_name": "แคลเซียมโบรอน",
+        "quantity_change": -1,
+        "new_quantity": 1
+    },
+    {
+        "timestamp": "2025-10-16T13:08:10.051110",
+        "type": "stock-out",
+        "barcode": "1111",
+        "product_name": "แคลเซียมโบรอน",
+        "quantity_change": -1,
+        "new_quantity": 2
+    },
+    {
+        "timestamp": "2025-10-16T13:08:10.050049",
+        "type": "stock-out",
+        "barcode": "2222",
+        "product_name": "อะมิโนทางด่วน",
+        "quantity_change": -1,
+        "new_quantity": 10
+    },
+    {
+        "timestamp": "2025-10-16T13:08:10.048232",
+        "type": "stock-out",
+        "barcode": "4444",
+        "product_name": "บิวเวอเรียน",
+        "quantity_change": -1,
+        "new_quantity": 3
+    },
+    {
+        "timestamp": "2025-10-16T13:08:10.047346",
+        "type": "stock-out",
+        "barcode": "4444",
+        "product_name": "บิวเวอเรียน",
+        "quantity_change": -1,
+        "new_quantity": 4
+    },
+    {
+        "timestamp": "2025-10-16T13:08:10.046017",
+        "type": "stock-out",
+        "barcode": "3333",
+        "product_name": "อาหารพืชทางใบ",
+        "quantity_change": -1,
+        "new_quantity": 0
+    },
+    {
+        "timestamp": "2025-10-16T13:08:10.044895",
+        "type": "stock-out",
+        "barcode": "2222",
+        "product_name": "อะมิโนทางด่วน",
+        "quantity_change": -1,
+        "new_quantity": 11
+    },
+    {
+        "timestamp": "2025-10-16T13:08:10.043655",
+        "type": "stock-out",
+        "barcode": "1111",
+        "product_name": "แคลเซียมโบรอน",
+        "quantity_change": -1,
+        "new_quantity": 3
+    },
+    {
+        "timestamp": "2025-10-16T13:06:17.340664",
+        "type": "stock-in",
+        "barcode": "2222",
+        "product_name": "อะมิโนทางด่วน",
+        "quantity_change": 5,
+        "new_quantity": 12
+    },
+    {
+        "timestamp": "2025-10-16T13:06:12.292768",
+        "type": "stock-in",
+        "barcode": "1111",
+        "product_name": "แคลเซียมโบรอน",
+        "quantity_change": 2,
+        "new_quantity": 4
+    },
+    {
+        "timestamp": "2025-10-16T13:06:05.885878",
+        "type": "stock-in",
+        "barcode": "4444",
+        "product_name": "บิวเวอเรียน",
+        "quantity_change": 5,
+        "new_quantity": 5
+    },
+    {
+        "timestamp": "2025-10-16T13:05:51.374158",
+        "type": "manual-adjust",
+        "barcode": "4444",
+        "product_name": "บิวเวอเรียน",
+        "quantity_change": 0,
+        "new_quantity": 0
+    },
+    {
+        "timestamp": "2025-10-16T13:00:59.207859",
+        "type": "stock-out",
+        "barcode": "3333",
+        "product_name": "อาหารพืชทางใบ",
+        "quantity_change": -1,
+        "new_quantity": 1
+    },
+    {
+        "timestamp": "2025-10-16T13:00:59.207143",
+        "type": "stock-out",
+        "barcode": "2222",
+        "product_name": "อะมิโนทางด่วน",
+        "quantity_change": -1,
+        "new_quantity": 7
+    },
+    {
+        "timestamp": "2025-10-16T13:00:59.206370",
+        "type": "stock-out",
+        "barcode": "2222",
+        "product_name": "อะมิโนทางด่วน",
+        "quantity_change": -1,
+        "new_quantity": 8
+    },
+    {
+        "timestamp": "2025-10-16T13:00:59.205801",
+        "type": "stock-out",
+        "barcode": "3333",
+        "product_name": "อาหารพืชทางใบ",
+        "quantity_change": -1,
+        "new_quantity": 2
+    },
+    {
+        "timestamp": "2025-10-16T13:00:59.205239",
+        "type": "stock-out",
+        "barcode": "2222",
+        "product_name": "อะมิโนทางด่วน",
+        "quantity_change": -1,
+        "new_quantity": 9
+    },
+    {
+        "timestamp": "2025-10-16T13:00:59.204640",
+        "type": "stock-out",
+        "barcode": "1111",
+        "product_name": "แคลเซียมโบรอน",
+        "quantity_change": -1,
+        "new_quantity": 2
+    },
+    {
+        "timestamp": "2025-10-16T13:00:59.203877",
+        "type": "stock-out",
+        "barcode": "1111",
+        "product_name": "แคลเซียมโบรอน",
+        "quantity_change": -1,
+        "new_quantity": 3
+    },
+    {
+        "timestamp": "2025-10-16T12:59:19.408457",
+        "type": "stock-out",
+        "barcode": "1111",
+        "product_name": "แคลเซียมโบรอน",
+        "quantity_change": -1,
+        "new_quantity": 4
+    },
+    {
+        "timestamp": "2025-10-16T12:59:19.407804",
+        "type": "stock-out",
+        "barcode": "3333",
+        "product_name": "อาหารพืชทางใบ",
+        "quantity_change": -1,
+        "new_quantity": 3
+    },
+    {
+        "timestamp": "2025-10-16T12:59:19.407064",
+        "type": "stock-out",
+        "barcode": "3333",
+        "product_name": "อาหารพืชทางใบ",
+        "quantity_change": -1,
+        "new_quantity": 4
+    },
+    {
+        "timestamp": "2025-10-16T12:58:28.613332",
+        "type": "stock-in",
+        "barcode": "3333",
+        "product_name": "อาหารพืชทางใบ",
+        "quantity_change": 5,
+        "new_quantity": 5
+    },
+    {
+        "timestamp": "2025-10-16T12:58:06.061086",
+        "type": "manual-adjust",
+        "barcode": "3333",
+        "product_name": "อาหารพืชทางใบ",
+        "quantity_change": 0,
+        "new_quantity": 0
+    }
+]
